@@ -414,7 +414,7 @@ function formAzione(p){
           <div class="field"><label for="a-valore">Ore lavorate *</label><input type="number" id="a-valore" min="0.25" step="0.25" placeholder="Per esempio: 1,5"></div>
           <div class="field" style="grid-column:1/-1"><label for="a-nota">Attività</label><input type="text" id="a-nota" placeholder="Per esempio: Redazione della memoria"></div>`,
     pag: `<div class="field"><label for="a-data">Data del pagamento</label><input type="date" id="a-data" value="${oggi}"></div>
-          <div class="field"><label for="a-valore">Importo (€) *</label><input type="number" id="a-valore" min="1" step="1" placeholder="Da incassare: ${eur(residuo(p))}"></div>
+          <div class="field"><label for="a-valore">Importo (€) *</label><input type="number" id="a-valore" min="1" step="1" placeholder="${p ? `Da incassare: ${eur(residuo(p))}` : "Importo in euro"}"></div>
           <div class="field" style="grid-column:1/-1"><label for="a-nota">Nota</label><input type="text" id="a-nota" placeholder="Per esempio: Acconto, saldo, bonifico"></div>`,
     ud:  `<div class="field"><label for="a-data">Data *</label><input type="date" id="a-data"></div>
           <div class="field"><label for="a-ora">Ora</label><input type="time" id="a-ora" value="09:30"></div>
