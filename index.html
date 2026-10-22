@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Gestionale studio legale</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: colonna di navigazione fissa a sinistra (essenziali sopra, aggiuntive sotto), area di lavoro bianca con tabelle dense; titoli in serif da atto, numeri di ruolo in mono. Tema unico chiaro, su richiesta di Luca. */
+:root{
+  --bg:#ffffff;
+  --panel:#f6f7f9;
+  --ink:#161a20;
+  --muted:#5d6570;
+  --line:#e4e7eb;
+  --accent:#1d3557;
+  --accent-soft:#e8edf4;
+  --crit:#b42318; --crit-soft:#fdecea;
+  --warn:#9a5b00; --warn-soft:#fdf3e1;
+  --ok:#0f6b3e; --ok-soft:#e6f4ec;
+  --font-display:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100%}
+.app > *{min-width:0}
+
+/* navigazione */
+.nav{border-right:1px solid var(--line);padding-block:24px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:16px;display:flex;flex-direction:column;gap:22px;position:sticky;top:env(safe-area-inset-top, 0px);height:100vh;overflow-y:auto}
+.brand{display:grid;gap:2px}
+.brand b{font-family:var(--font-display);font-weight:600;font-size:1.25rem;letter-spacing:.005em}
+.brand span{font-size:.8rem;color:var(--muted)}
+.nav-group{display:grid;gap:2px}
+.nav-label{font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:0 10px 6px}
+.nav a{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:.92rem}
+.nav a:hover{background:var(--panel)}
+.nav a[aria-current="page"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.nav a .count{font-family:var(--font-mono);font-size:.75rem;color:var(--muted)}
+.demo-note{margin-top:auto;font-size:.75rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+
+/* area di lavoro */
+.main{padding-block:28px 64px;padding-left:32px;padding-right:max(32px, env(safe-area-inset-right, 0px));display:grid;gap:28px;align-content:start;max-width:1180px}
+.page-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px}
+.page-head h1{font-family:var(--font-display);font-weight:600;font-size:1.9rem;margin:0;line-height:1.15;text-wrap:balance}
+.page-head p{margin:4px 0 0;color:var(--muted);max-width:68ch}
+.chip-demo{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;white-space:nowrap}
+h2{font-family:var(--font-display);font-weight:600;font-size:1.2rem;margin:0}
+.section{display:grid;gap:12px}
+.section-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.section-head a{font-size:.85rem;color:var(--accent)}
+.muted{color:var(--muted)}
+.mono{font-family:var(--font-mono);font-size:.86em}
+.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+
+/* numeri chiave */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line);border-radius:8px}
+.kpi{padding:16px 18px;display:grid;gap:4px;border-right:1px solid var(--line)}
+.kpi:last-child{border-right:0}
+.kpis-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.recap-frase{font-family:var(--font-display);font-size:1.4rem;line-height:1.35;margin:0;max-width:60ch;text-wrap:pretty}
+.kpi .k{font-size:.78rem;color:var(--muted)}
+.kpi .v{font-family:var(--font-display);font-size:1.7rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .s{font-size:.8rem;color:var(--muted)}
+
+/* tabelle */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--panel);white-space:nowrap}
+tbody tr.click{cursor:pointer}
+tbody tr.click:hover td{background:var(--panel)}
+tbody tr.click:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+/* stati */
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.76rem;font-weight:500;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.pill.crit{background:var(--crit-soft);color:var(--crit)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.neutral{background:var(--panel);color:var(--muted)}
+.pill.accent{background:var(--accent-soft);color:var(--accent)}
+.bar{height:6px;background:var(--panel);border-radius:3px;overflow:hidden;min-width:80px}
+.bar i{display:block;height:100%;background:var(--accent)}
+
+/* due colonne */
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.two > *{min-width:0}
+
+/* liste */
+.list{display:grid;border:1px solid var(--line);border-radius:8px}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:start;padding:12px 14px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .when{font-family:var(--font-mono);font-size:.82rem;color:var(--muted);min-width:86px}
+.row .what{display:grid;gap:2px;min-width:0}
+.row .what b{font-weight:600}
+.row .what span{font-size:.85rem;color:var(--muted)}
+.row.link{cursor:pointer}
+.row.link:hover{background:var(--panel)}
+
+/* filtri e moduli */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+input[type=text],input[type=number],input[type=date],input[type=time],select{font:inherit;font-size:.9rem;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button{font:inherit;font-size:.88rem;font-weight:500;padding:8px 14px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:#ffffff;cursor:pointer}
+button.ghost{background:var(--bg);color:var(--accent)}
+button.ghost[aria-pressed="true"]{background:var(--accent-soft)}
+.form{display:grid;gap:14px}
+.field{display:grid;gap:5px}
+.field label,.field .lbl{font-size:.8rem;color:var(--muted)}
+.checks{display:flex;flex-wrap:wrap;gap:8px 18px}
+.checks label{display:flex;gap:6px;align-items:center;font-size:.9rem;color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+
+/* scheda pratica */
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:14px 24px;border:1px solid var(--line);border-radius:8px;padding:16px 18px}
+.fact{display:grid;gap:2px}
+.fact dt{font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.fact dd{margin:0}
+.back{background:none;border:0;color:var(--accent);padding:0;font-size:.88rem;justify-self:start}
+.timeline{display:grid;border-left:2px solid var(--line);margin-left:6px}
+.tl{position:relative;padding:0 0 16px 18px;display:grid;gap:2px}
+.tl::before{content:"";position:absolute;left:-7px;top:5px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--line)}
+.tl.next::before{border-color:var(--accent);background:var(--accent)}
+.tl.prev::before{border-color:var(--accent)}
+.tl .d{font-family:var(--font-mono);font-size:.82rem;color:var(--muted)}
+
+/* documento */
+.paper{border:1px solid var(--line);border-radius:4px;padding:36px 40px;font-family:var(--font-display);font-size:1rem;line-height:1.65;max-width:72ch;background:var(--bg)}
+.paper h3{text-align:center;font-size:1.05rem;letter-spacing:.06em;margin:0 0 18px}
+.paper p{margin:0 0 12px}
+.paper .sig{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:28px;font-family:var(--font-body);font-size:.8rem;color:var(--muted)}
+.paper .sig span{border-top:1px solid var(--ink);padding-top:6px}
+.callout{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:12px 14px;font-size:.88rem;color:var(--ink)}
+.callout.warnbox{background:var(--warn-soft);border-color:var(--warn-soft)}
+.callout b{font-weight:600}
+
+/* preventivo */
+.calc{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+.summary{border:1px solid var(--line);border-radius:8px;padding:18px;display:grid;gap:10px}
+.summary .line{display:flex;justify-content:space-between;gap:12px;font-size:.92rem}
+.summary .line.tot{border-top:1px solid var(--ink);padding-top:10px;font-weight:600;font-size:1.05rem}
+.summary .big{font-family:var(--font-display);font-size:2rem;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* mappa */
+.dots{letter-spacing:2px;color:var(--accent);white-space:nowrap}
+.dots .off{color:var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.84rem;color:var(--muted)}
+
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .nav{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding-block:14px;padding-right:max(16px, env(safe-area-inset-right, 0px));gap:10px;flex-direction:column}
+  .nav-scroll{display:flex;gap:4px;overflow-x:auto}
+  .nav-group{display:flex;gap:2px}
+  .nav-label{display:none}
+  .nav a{white-space:nowrap}
+  .demo-note{display:none}
+  .main{padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 48px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi:nth-child(2){border-right:0}
+  .kpi:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .two,.calc{grid-template-columns:1fr}
+  .kpis-3{grid-template-columns:1fr}
+  .kpis-3 .kpi{border-right:0;border-bottom:1px solid var(--line)}
+  .kpis-3 .kpi:last-child{border-bottom:0}
+  .recap-frase{font-size:1.15rem}
+  .paper{padding:22px 18px}
+}
+@media (prefers-reduced-motion:no-preference){ .nav a, tbody tr.click td, .row.link{transition:background .12s ease} }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="nav" aria-label="Sezioni">
+    <div class="brand"><b>Studio Legale Demo</b><span>Gestionale · prototipo</span></div>
+    <div class="nav-scroll">
+      <div class="nav-group">
+        <div class="nav-label">Essenziali</div>
+        <a href="#recap" data-page="recap">Recap</a>
+        <a href="#pratiche" data-page="pratiche">Pratiche <span class="count" id="c-pratiche"></span></a>
+        <a href="#agenda" data-page="agenda">Udienze e scadenze</a>
+        <a href="#anagrafica" data-page="anagrafica">Clienti e controparti</a>
+        <a href="#incassi" data-page="incassi">Compensi e incassi</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Aggiuntive</div>
+        <a href="#preventivo" data-page="preventivo">Preventivo</a>
+        <a href="#mandato" data-page="mandato">Mandato</a>
+        <a href="#margine" data-page="margine">Margine e ROI</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Progetto</div>
+        <a href="#mappa" data-page="mappa">Mappa delle funzioni</a>
+      </div>
+    </div>
+    <p class="demo-note">Dati inventati, a scopo dimostrativo. Oggi è giovedì 22 ottobre 2026.</p>
+  </nav>
+  <main class="main" id="main" tabindex="-1"></main>
+</div>
+
+<script>
+(function(){
+const TODAY = new Date(2026, 9, 22);
+const COSTO_ORARIO_DEFAULT = 50;
+
+const PRATICHE = [
+  {id:"P-2026-014", fascicolo:"RG 4521/2025", autorita:"Tribunale di Milano, sezione civile", materia:"Civile", oggetto:"Risarcimento danni per vizi dell'immobile", assistiti:["Laura Ferri"], controparti:["Edilnord Srl"], resp:"Avv. Conti", stato:"Aperta", valore:38000, compenso:4800, pagato:2400, ultimoPag:"2026-07-10", ore:26, mandato:"2025-11-04"},
+  {id:"P-2026-021", fascicolo:"RG 1187/2026", autorita:"Giudice di Pace di Monza", materia:"Civile", oggetto:"Sinistro stradale, danni al veicolo", assistiti:["Marco Bassi"], controparti:["Assicurazioni Alfa SpA"], resp:"Avv. Galli", stato:"Aperta", valore:4200, compenso:900, pagato:900, ultimoPag:"2026-03-02", ore:9, mandato:"2026-02-20"},
+  {id:"P-2026-009", fascicolo:"RGNR 2290/2025", autorita:"Tribunale di Milano, sezione penale", materia:"Penale", oggetto:"Difesa per appropriazione indebita", assistiti:["Davide Russo"], controparti:["Procura della Repubblica"], resp:"Avv. Conti", stato:"Aperta", valore:null, compenso:6000, pagato:3000, ultimoPag:"2026-09-15", ore:41, mandato:"2025-10-01"},
+  {id:"P-2026-030", fascicolo:"RG 812/2026", autorita:"Corte di giustizia tributaria di primo grado di Milano", materia:"Tributario", oggetto:"Ricorso contro avviso di accertamento", assistiti:["Marchetti Srl"], controparti:["Agenzia delle Entrate"], resp:"Avv. Galli", stato:"Aperta", valore:61000, compenso:3500, pagato:0, ultimoPag:null, ore:12, mandato:"2026-06-12"},
+  {id:"P-2025-077", fascicolo:"RG 6603/2024", autorita:"Corte d'Appello di Milano", materia:"Civile", oggetto:"Appello su sfratto per morosità", assistiti:["Laura Ferri","Paolo Ferri"], controparti:["Immobiliare Duomo Srl"], resp:"Avv. Conti", stato:"Aperta", valore:24000, compenso:7200, pagato:7200, ultimoPag:"2026-05-30", ore:58, mandato:"2024-12-03"},
+  {id:"P-2026-033", fascicolo:"RG 2045/2026", autorita:"Tribunale di Monza, sezione lavoro", materia:"Lavoro", oggetto:"Impugnazione di licenziamento", assistiti:["Sara Colombo"], controparti:["Logistica Brianza Srl"], resp:"Avv. Galli", stato:"Aperta", valore:18000, compenso:2800, pagato:500, ultimoPag:"2026-09-28", ore:6, mandato:"2026-09-25"}
+];
+
+const UDIENZE = [
+  {p:"P-2026-014", data:"2026-04-15", ora:"09:30", oggetto:"Prima udienza di comparizione", esito:"Concessi i termini per le memorie"},
+  {p:"P-2026-014", data:"2026-07-08", ora:"11:00", oggetto:"Ammissione dei mezzi istruttori", esito:"Disposta consulenza tecnica"},
+  {p:"P-2026-014", data:"2026-11-12", ora:"10:00", oggetto:"Esame della consulenza tecnica", esito:""},
+  {p:"P-2026-021", data:"2026-06-18", ora:"09:00", oggetto:"Prima udienza", esito:"Rinvio per testimoni"},
+  {p:"P-2026-021", data:"2026-10-22", ora:"12:15", oggetto:"Escussione dei testimoni", esito:""},
+  {p:"P-2026-009", data:"2026-09-30", ora:"09:00", oggetto:"Udienza preliminare", esito:"Rinvio per la discussione"},
+  {p:"P-2026-009", data:"2026-10-29", ora:"09:30", oggetto:"Discussione", esito:""},
+  {p:"P-2026-030", data:"2026-11-20", ora:"10:30", oggetto:"Trattazione del ricorso", esito:""},
+  {p:"P-2025-077", data:"2026-03-11", ora:"10:00", oggetto:"Prima udienza in appello", esito:"Trattenuta in decisione"},
+  {p:"P-2025-077", data:"2026-10-24", ora:"09:00", oggetto:"Lettura del dispositivo", esito:""},
+  {p:"P-2026-033", data:"2026-11-05", ora:"11:30", oggetto:"Prima udienza e tentativo di conciliazione", esito:""}
+];
+
+const SCADENZE = [
+  {p:"P-2026-014", data:"2026-10-27", cosa:"Deposito delle osservazioni alla consulenza tecnica"},
+  {p:"P-2026-030", data:"2026-10-30", cosa:"Deposito di memorie e documenti"},
+  {p:"P-2026-033", data:"2026-10-24", cosa:"Deposito della documentazione per la prima udienza"},
+  {p:"P-2026-021", data:"2026-11-14", cosa:"Note conclusive"},
+  {p:"P-2026-009", data:"2026-11-03", cosa:"Lista testimoni della difesa"}
+];
+
+/* pratiche aggiunte da chi usa il prototipo: restano solo in questo browser */
+const STORE_KEY = "gestionale-demo-aggiunte";
+const MOVIMENTI = [];
+let AGGIUNTE = {pratiche:[], udienze:[], scadenze:[], movimenti:[]};
+function applicaMovimento(m){
+  const p = PRATICHE.find(x=>x.id===m.p); if (!p) return;
+  if (m.tipo === "ore") p.ore = Math.round((p.ore + m.valore)*100)/100;
+  else { p.pagato += m.valore; if (!p.ultimoPag || m.data > p.ultimoPag) p.ultimoPag = m.data; }
+}
+function salvaAggiunte(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(AGGIUNTE)); } catch(err) {} }
+try {
+  const s = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+  if (s && Array.isArray(s.pratiche)) {
+    AGGIUNTE = {pratiche:s.pratiche, udienze:s.udienze || [], scadenze:s.scadenze || [], movimenti:s.movimenti || []};
+    AGGIUNTE.pratiche.forEach(p=>PRATICHE.push(p));
+    AGGIUNTE.udienze.forEach(u=>UDIENZE.push(u));
+    AGGIUNTE.scadenze.forEach(x=>SCADENZE.push(x));
+    AGGIUNTE.movimenti.forEach(m=>{ MOVIMENTI.push(m); applicaMovimento(m); });
+  }
+} catch(err) {}
+
+/* aiuti */
+const $ = (s, el=document) => el.querySelector(s);
+const partiTxt = p => p.controparti.length ? `${esc(p.assistiti.join(", "))} contro ${esc(p.controparti.join(", "))}` : esc(p.assistiti.join(", "));
+const pctFmt = x => (x == null || !isFinite(x)) ? "—" : `${x>0?"+":""}${Math.round(x*100)}%`;
+const roiClass = x => (x == null || !isFinite(x)) ? "neutral" : x < 0 ? "crit" : x < 0.5 ? "warn" : "ok";
+const quota = p => p.compenso ? Math.round(p.pagato/p.compenso*100) : 0;
+const main = $("#main");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const eur = n => n == null ? "—" : n.toLocaleString("it-IT",{style:"currency",currency:"EUR",maximumFractionDigits:0});
+const eur2 = n => n.toLocaleString("it-IT",{style:"currency",currency:"EUR",minimumFractionDigits:2,maximumFractionDigits:2});
+const toDate = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+const days = s => Math.round((toDate(s) - TODAY) / 86400000);
+const fmtD = s => toDate(s).toLocaleDateString("it-IT",{weekday:"short", day:"2-digit", month:"2-digit"});
+const fmtLong = s => toDate(s).toLocaleDateString("it-IT",{day:"numeric", month:"long", year:"numeric"});
+const pr = id => PRATICHE.find(p => p.id === id);
+const residuo = p => p.compenso - p.pagato;
+const giorniSenzaPag = p => p.ultimoPag ? -days(p.ultimoPag) : -days(p.mandato);
+function statoIncasso(p){
+  if (!p.compenso) return {t:"Compenso da definire", c:"neutral"};
+  if (residuo(p) === 0) return {t:"Saldato", c:"ok"};
+  if (giorniSenzaPag(p) > 60) return {t:"Da sollecitare", c:"crit"};
+  return {t:"In corso", c:"neutral"};
+}
+function urgenza(d){
+  if (d < 0) return {t:"Scaduta", c:"crit"};
+  if (d <= 3) return {t: d === 0 ? "Oggi" : `Tra ${d} gg`, c:"crit"};
+  if (d <= 10) return {t:`Tra ${d} gg`, c:"warn"};
+  return {t:`Tra ${d} gg`, c:"neutral"};
+}
+function head(title, sub){
+  return `<div class="page-head"><div><h1>${title}</h1>${sub ? `<p>${sub}</p>` : ""}</div><span class="chip-demo">Dati di esempio</span></div>`;
+}
+
+/* stato della pagina */
+let state = { page:"recap", pratica:null, filtroResp:"Tutti", cerca:"", costoOrario:COSTO_ORARIO_DEFAULT, prev:null, mandatoDa:null };
+
+/* RECAP */
+function voceRecap(it){
+  const p = pr(it.p), d = days(it.data), u = urgenza(d);
+  const quando = d === 0 ? "Oggi" : d === 1 ? "Domani" : fmtD(it.data);
+  return `<div class="row link" tabindex="0" data-open="${p.id}"><span class="when">${quando}${it.ora ? `<br>${it.ora}` : ""}</span><span class="what"><b>${esc(it.testo)}</b><span>${esc(p.assistiti.join(", "))} · ${p.id} · ${esc(p.resp)}</span></span><span style="display:grid;gap:4px;justify-items:end"><span class="pill ${it.tipo==="Udienza"?"accent":"neutral"}">${it.tipo}</span>${d > 1 ? `<span class="pill ${u.c}">${u.t}</span>` : ""}</span></div>`;
+}
+function pageRecap(){
+  const voci = [
+    ...UDIENZE.map(u=>({tipo:"Udienza", data:u.data, ora:u.ora, testo:u.oggetto, p:u.p})),
+    ...SCADENZE.map(s=>({tipo:"Scadenza", data:s.data, ora:"", testo:s.cosa, p:s.p}))
+  ].filter(v=>days(v.data) >= 0).sort((a,b)=>a.data.localeCompare(b.data) || a.ora.localeCompare(b.ora));
+  const subito = voci.filter(v=>days(v.data) <= 2);
+  const poi = voci.filter(v=>{ const d = days(v.data); return d > 2 && d <= 14; });
+  const solleciti = PRATICHE.filter(p=>statoIncasso(p).t==="Da sollecitare").sort((a,b)=>residuo(b)-residuo(a));
+  const daSollecitare = solleciti.reduce((s,p)=>s+residuo(p),0);
+  const daIncassare = PRATICHE.reduce((s,p)=>s+residuo(p),0);
+  const udOggi = UDIENZE.filter(u=>days(u.data)===0).length;
+  const scad3 = SCADENZE.filter(s=>{ const d = days(s.data); return d >= 0 && d <= 3; }).length;
+  const ud7 = UDIENZE.filter(u=>{ const d = days(u.data); return d >= 0 && d <= 7; }).length;
+  const sc7 = SCADENZE.filter(s=>{ const d = days(s.data); return d >= 0 && d <= 7; }).length;
+  const f1 = udOggi ? (udOggi === 1 ? "un'udienza oggi" : `${udOggi} udienze oggi`) : "nessuna udienza oggi";
+  const f2 = scad3 ? (scad3 === 1 ? "una scadenza entro 3 giorni" : `${scad3} scadenze entro 3 giorni`) : "nessuna scadenza entro 3 giorni";
+  const f3 = solleciti.length ? `${eur(daSollecitare)} di compensi da sollecitare` : "nessun compenso da sollecitare";
+  const data = TODAY.toLocaleDateString("it-IT",{weekday:"long", day:"numeric", month:"long", year:"numeric"});
+  return `${head("Recap", data.charAt(0).toUpperCase() + data.slice(1))}
+  <p class="recap-frase">In breve: ${f1}, ${f2} e ${f3}.</p>
+  <div class="kpis kpis-3">
+    <div class="kpi"><span class="k">Udienze nei prossimi 7 giorni</span><span class="v">${ud7}</span><span class="s">${udOggi} oggi</span></div>
+    <div class="kpi"><span class="k">Scadenze nei prossimi 7 giorni</span><span class="v">${sc7}</span><span class="s">${scad3} entro 3 giorni</span></div>
+    <div class="kpi"><span class="k">Compensi da incassare</span><span class="v">${eur(daIncassare)}</span><span class="s">${eur(daSollecitare)} da sollecitare</span></div>
+  </div>
+  <section class="section"><div class="section-head"><h2>Da fare subito</h2><span class="muted" style="font-size:.85rem">Oggi, domani e dopodomani</span></div>
+    <div class="list">${subito.length ? subito.map(voceRecap).join("") : `<div class="row"><span class="what muted">Niente in programma.</span></div>`}</div>
+  </section>
+  <section class="section"><div class="section-head"><h2>Nelle prossime due settimane</h2><a href="#agenda">Tutta l'agenda</a></div>
+    <div class="list">${poi.length ? poi.map(voceRecap).join("") : `<div class="row"><span class="what muted">Niente in programma.</span></div>`}</div>
+  </section>
+  <section class="section"><div class="section-head"><h2>Compensi da sollecitare</h2><a href="#incassi">Tutti gli incassi</a></div>
+    <div class="list">${solleciti.length ? solleciti.map(p=>`<div class="row link" tabindex="0" data-open="${p.id}"><span class="when">${p.id}</span><span class="what"><b>${esc(p.assistiti.join(", "))}</b><span>${p.ultimoPag ? `Ultimo pagamento il ${fmtLong(p.ultimoPag)}` : `Nessun pagamento dal mandato del ${fmtLong(p.mandato)}`}</span></span><span class="num"><b>${eur(residuo(p))}</b></span></div>`).join("") : `<div class="row"><span class="what muted">Nessun compenso da sollecitare.</span></div>`}</div>
+  </section>`;
+}
+
+/* PRATICHE */
+function prossimaUdienza(id){ return UDIENZE.filter(u=>u.p===id && days(u.data)>=0).sort((a,b)=>a.data.localeCompare(b.data))[0]; }
+function pagePratiche(){
+  if (state.pratica) return pageScheda(pr(state.pratica));
+  const resps = ["Tutti", ...new Set(PRATICHE.map(p=>p.resp))];
+  const q = state.cerca.trim().toLowerCase();
+  const rows = PRATICHE.filter(p => (state.filtroResp==="Tutti"||p.resp===state.filtroResp) &&
+    (!q || [p.id,p.fascicolo,p.autorita,p.oggetto,...p.assistiti,...p.controparti].join(" ").toLowerCase().includes(q)));
+  return `${head("Pratiche", "Numero di pratica e fascicolo, parti, autorità, responsabile e prossima udienza in una sola riga.")}
+  <div class="toolbar">
+    <input type="text" id="cerca" placeholder="Cerca per nome, numero o autorità" value="${esc(state.cerca)}" aria-label="Cerca pratiche" style="flex:1 1 260px">
+    <select id="filtro-resp" aria-label="Responsabile">${resps.map(r=>`<option${r===state.filtroResp?" selected":""}>${esc(r)}</option>`).join("")}</select>
+    <button id="btn-nuova">Nuova pratica</button>
+  </div>
+  <div class="tw"><table>
+    <thead><tr><th>Pratica</th><th>Fascicolo</th><th>Assistiti</th><th>Controparti</th><th>Autorità</th><th>Responsabile</th><th>Prossima udienza</th></tr></thead>
+    <tbody>${rows.map(p=>{const u=prossimaUdienza(p.id);return `<tr class="click" tabindex="0" data-open="${p.id}"><td class="mono">${p.id}</td><td class="mono">${p.fascicolo}</td><td>${esc(p.assistiti.join(", "))}</td><td>${esc(p.controparti.join(", "))}</td><td>${esc(p.autorita)}</td><td>${esc(p.resp)}</td><td>${u?`<span class="mono">${fmtD(u.data)}</span> <span class="muted">${esc(u.oggetto)}</span>`:"<span class='muted'>Da fissare</span>"}</td></tr>`}).join("") || `<tr><td colspan="7" class="muted">Nessuna pratica corrisponde alla ricerca.</td></tr>`}</tbody>
+  </table></div>`;
+}
+function pageScheda(p){
+  const uds = UDIENZE.filter(u=>u.p===p.id).sort((a,b)=>a.data.localeCompare(b.data));
+  const next = uds.find(u=>days(u.data)>=0);
+  const prevs = uds.filter(u=>days(u.data)<0);
+  const prev = prevs[prevs.length-1];
+  const sc = SCADENZE.filter(s=>s.p===p.id);
+  const marg = p.compenso - p.ore*state.costoOrario;
+  return `<button class="back" data-back>‹ Tutte le pratiche</button>
+  ${head(`${p.id} · ${esc(p.oggetto)}`, partiTxt(p))}
+  <dl class="facts">
+    <div class="fact"><dt>Fascicolo</dt><dd class="mono">${p.fascicolo}</dd></div>
+    <div class="fact"><dt>Autorità</dt><dd>${esc(p.autorita)}</dd></div>
+    <div class="fact"><dt>Responsabile</dt><dd>${esc(p.resp)}</dd></div>
+    <div class="fact"><dt>Materia</dt><dd>${esc(p.materia)}</dd></div>
+    <div class="fact"><dt>Assistiti</dt><dd>${esc(p.assistiti.join(", "))}</dd></div>
+    <div class="fact"><dt>Controparti</dt><dd>${p.controparti.length ? esc(p.controparti.join(", ")) : "<span class='muted'>Nessuna</span>"}</dd></div>
+    <div class="fact"><dt>Valore della causa</dt><dd>${p.valore?eur(p.valore):"Indeterminabile"}</dd></div>
+    <div class="fact"><dt>Mandato</dt><dd>${fmtLong(p.mandato)}</dd></div>
+  </dl>
+  <div class="toolbar" role="group" aria-label="Azioni sulla pratica">
+    ${[["ore","Registra ore"],["pag","Registra pagamento"],["ud","Aggiungi udienza"],["sc","Aggiungi scadenza"]].map(([k,t])=>`<button class="ghost" data-azione="${k}" aria-pressed="${state.azione===k}">${t}</button>`).join("")}
+  </div>
+  ${state.azione ? formAzione(p) : ""}
+  <div class="two">
+    <section class="section"><h2>Udienze</h2>
+      <div class="timeline">${uds.length ? "" : "<span class='muted'>Nessuna udienza fissata.</span>"}${uds.map(u=>{const cls = u===next?"next":(u===prev?"prev":"");return `<div class="tl ${cls}"><span class="d">${fmtD(u.data)} ${u.ora}${u===next?" · prossima":(u===prev?" · precedente":"")}</span><b>${esc(u.oggetto)}</b>${u.esito?`<span class="muted">${esc(u.esito)}</span>`:""}</div>`}).join("")}</div>
+      <h2>Scadenze</h2>
+      <div class="list">${sc.length?sc.map(s=>{const d=days(s.data);return `<div class="row"><span class="when">${fmtD(s.data)}</span><span class="what"><b>${esc(s.cosa)}</b></span><span class="pill ${urgenza(d).c}">${urgenza(d).t}</span></div>`}).join(""):`<div class="row"><span class="what muted">Nessuna scadenza aperta.</span></div>`}</div>
+    </section>
+    <section class="section"><h2>Compenso</h2>
+      <div class="summary">
+        <div class="line"><span>Compenso concordato</span><span class="num">${eur(p.compenso)}</span></div>
+        <div class="line"><span>Pagato</span><span class="num">${eur(p.pagato)}</span></div>
+        <div class="line tot"><span>Da incassare</span><span class="num">${eur(residuo(p))}</span></div>
+        <div class="bar" aria-label="Quota incassata"><i style="width:${quota(p)}%"></i></div>
+        <div class="line"><span class="muted">Ore lavorate</span><span class="num">${p.ore}</span></div>
+        <div class="line"><span class="muted">Margine stimato (a ${eur(state.costoOrario)}/ora)</span><span class="num" style="color:var(${marg<0?"--crit":"--ink"})">${eur(marg)}</span></div>
+        <div class="line"><span class="muted">ROI della pratica</span><span class="num">${p.ore ? `<span class="pill ${roiClass(marg/(p.ore*state.costoOrario))}">${pctFmt(marg/(p.ore*state.costoOrario))}</span>` : "<span class='muted'>Nessuna ora registrata</span>"}</span></div>
+      </div>
+      <div class="toolbar"><button data-mandato="${p.id}">Genera il mandato</button><span class="pill ${statoIncasso(p).c}">${statoIncasso(p).t}</span></div>
+      <h2>Ore e pagamenti registrati</h2>
+      ${(()=>{ const mv = MOVIMENTI.filter(m=>m.p===p.id).sort((a,b)=>b.data.localeCompare(a.data)); return mv.length ? `<div class="list">${mv.map(m=>`<div class="row"><span class="when">${fmtD(m.data)}</span><span class="what"><b>${m.tipo==="ore" ? `${String(m.valore).replace(".",",")} ore` : eur2(m.valore)}</b>${m.nota?`<span>${esc(m.nota)}</span>`:""}</span><span class="pill ${m.tipo==="ore"?"accent":"ok"}">${m.tipo==="ore"?"Ore":"Pagamento"}</span></div>`).join("")}</div>` : `<p class="muted" style="margin:0;font-size:.88rem">Nessuna registrazione. Le ore e i pagamenti precedenti sono già nei totali di esempio.</p>`; })()}
+    </section>
+  </div>`;
+}
+
+/* AZIONI SULLA PRATICA */
+function formAzione(p){
+  const oggi = "2026-10-22";
+  const campi = {
+    ore: `<div class="field"><label for="a-data">Giorno</label><input type="date" id="a-data" value="${oggi}"></div>
+          <div class="field"><label for="a-valore">Ore lavorate *</label><input type="number" id="a-valore" min="0.25" step="0.25" placeholder="Per esempio: 1,5"></div>
+          <div class="field" style="grid-column:1/-1"><label for="a-nota">Attività</label><input type="text" id="a-nota" placeholder="Per esempio: Redazione della memoria"></div>`,
+    pag: `<div class="field"><label for="a-data">Data del pagamento</label><input type="date" id="a-data" value="${oggi}"></div>
+          <div class="field"><label for="a-valore">Importo (€) *</label><input type="number" id="a-valore" min="1" step="1" placeholder="Da incassare: ${eur(residuo(p))}"></div>
+          <div class="field" style="grid-column:1/-1"><label for="a-nota">Nota</label><input type="text" id="a-nota" placeholder="Per esempio: Acconto, saldo, bonifico"></div>`,
+    ud:  `<div class="field"><label for="a-data">Data *</label><input type="date" id="a-data"></div>
+          <div class="field"><label for="a-ora">Ora</label><input type="time" id="a-ora" value="09:30"></div>
+          <div class="field" style="grid-column:1/-1"><label for="a-nota">Per cosa è fissata *</label><input type="text" id="a-nota" placeholder="Per esempio: Precisazione delle conclusioni"></div>`,
+    sc:  `<div class="field"><label for="a-data">Entro il *</label><input type="date" id="a-data"></div>
+          <div class="field" style="grid-column:1/-1"><label for="a-nota">Cosa scade *</label><input type="text" id="a-nota" placeholder="Per esempio: Deposito della comparsa conclusionale"></div>`
+  };
+  const titoli = {ore:"Registra ore", pag:"Registra un pagamento", ud:"Aggiungi un'udienza", sc:"Aggiungi una scadenza"};
+  return `<form class="form" id="azione-form" novalidate style="border:1px solid var(--line);border-radius:8px;padding:16px 18px;max-width:780px">
+    <h2>${titoli[state.azione]}</h2>
+    <div class="two">${p ? "" : `<div class="field" style="grid-column:1/-1"><label for="a-pratica">Pratica *</label><select id="a-pratica"><option value="">Scegli la pratica</option>${PRATICHE.map(x=>`<option value="${x.id}">${x.id} · ${esc(x.assistiti.join(", "))} · ${esc(x.oggetto)}</option>`).join("")}</select></div>`}${campi[state.azione]}</div>
+    <div id="a-errore"></div>
+    <div class="toolbar"><button type="submit">Salva</button><button type="button" class="ghost" data-azione-chiudi>Annulla</button></div>
+  </form>`;
+}
+function salvaAzione(){
+  const sel = $("#a-pratica");
+  const p = sel ? pr(sel.value) : pr(state.pratica);
+  const tipo = state.azione;
+  const data = $("#a-data").value;
+  const nota = ($("#a-nota")?.value || "").trim();
+  const valore = Number(($("#a-valore")?.value || "").replace(",", "."));
+  const errs = [];
+  if (!p) errs.push("Scegli la pratica.");
+  if (!data) errs.push("Scegli una data.");
+  if ((tipo==="ore" || tipo==="pag") && !(valore > 0)) errs.push(tipo==="ore" ? "Indica quante ore." : "Indica l'importo pagato.");
+  if (tipo==="pag" && p && p.compenso && valore > residuo(p)) errs.push(`L'importo supera quanto resta da incassare (${eur(residuo(p))}).`);
+  if ((tipo==="ud" || tipo==="sc") && !nota) errs.push(tipo==="ud" ? "Scrivi per cosa è fissata l'udienza." : "Scrivi cosa scade.");
+  if (errs.length){ $("#a-errore").innerHTML = `<div class="callout warnbox">${errs.map(esc).join("<br>")}</div>`; return; }
+  let msg = "";
+  if (tipo==="ore" || tipo==="pag"){
+    const m = {p:p.id, tipo, valore, data, nota};
+    MOVIMENTI.push(m); AGGIUNTE.movimenti.push(m); applicaMovimento(m);
+    msg = tipo==="ore" ? `${String(valore).replace(".",",")} ore registrate.` : `Pagamento di ${eur2(valore)} registrato.`;
+  } else if (tipo==="ud"){
+    const u = {p:p.id, data, ora:$("#a-ora").value || "09:00", oggetto:nota, esito:""};
+    UDIENZE.push(u); AGGIUNTE.udienze.push(u);
+    msg = `Udienza del ${fmtLong(data)} aggiunta alla pratica ${p.id}.`;
+  } else {
+    const s = {p:p.id, data, cosa:nota};
+    SCADENZE.push(s); AGGIUNTE.scadenze.push(s);
+    msg = `Scadenza del ${fmtLong(data)} aggiunta alla pratica ${p.id}.`;
+  }
+  salvaAggiunte();
+  state.azione = null; state.flash = msg;
+  render();
+}
+
+const barraAgenda = () => `<div class="toolbar" role="group" aria-label="Aggiungi all'agenda">
+    <button data-azione="ud" aria-pressed="${state.azione==="ud"}">Aggiungi udienza</button>
+    <button data-azione="sc" aria-pressed="${state.azione==="sc"}">Aggiungi scadenza</button>
+  </div>${state.azione==="ud" || state.azione==="sc" ? formAzione(null) : ""}`;
+
+/* AGENDA */
+function pageAgenda(){
+  const items = [
+    ...UDIENZE.filter(u=>days(u.data)>=0).map(u=>({tipo:"Udienza", data:u.data, ora:u.ora, testo:u.oggetto, p:u.p})),
+    ...SCADENZE.map(s=>({tipo:"Scadenza", data:s.data, ora:"", testo:s.cosa, p:s.p}))
+  ].sort((a,b)=>a.data.localeCompare(b.data) || a.ora.localeCompare(b.ora));
+  const settimana = d => { const dt = toDate(d); const g = (dt.getDay()+6)%7; const lun = new Date(dt); lun.setDate(dt.getDate()-g); return lun; };
+  const gruppi = [];
+  items.forEach(it=>{ const k = settimana(it.data).toDateString(); let g = gruppi.find(x=>x.k===k); if(!g){ g={k, lun:settimana(it.data), items:[]}; gruppi.push(g);} g.items.push(it); });
+  return `${head("Udienze e scadenze", "Un'unica agenda per lo studio, divisa per settimana. Ogni voce porta alla sua pratica.")}
+  ${barraAgenda()}
+  ${gruppi.map(g=>`<section class="section"><h2>Settimana del ${g.lun.toLocaleDateString("it-IT",{day:"numeric",month:"long"})}</h2>
+    <div class="list">${g.items.map(it=>{const p=pr(it.p);const d=days(it.data);return `<div class="row link" tabindex="0" data-open="${p.id}"><span class="when">${fmtD(it.data)}${it.ora?`<br>${it.ora}`:""}</span><span class="what"><b>${esc(it.testo)}</b><span>${p.id} · ${esc(p.assistiti.join(", "))} · ${esc(p.autorita)} · ${esc(p.resp)}</span></span><span style="display:grid;gap:4px;justify-items:end"><span class="pill ${it.tipo==="Udienza"?"accent":"neutral"}">${it.tipo}</span><span class="pill ${urgenza(d).c}">${urgenza(d).t}</span></span></div>`}).join("")}</div></section>`).join("")}`;
+}
+
+/* ANAGRAFICA */
+function parti(){
+  const m = new Map();
+  PRATICHE.forEach(p=>{
+    p.assistiti.forEach(n=>{ const e=m.get(n)||{nome:n, ruoli:new Set(), pratiche:[]}; e.ruoli.add("Assistito"); e.pratiche.push(p.id); m.set(n,e); });
+    p.controparti.forEach(n=>{ const e=m.get(n)||{nome:n, ruoli:new Set(), pratiche:[]}; e.ruoli.add("Controparte"); e.pratiche.push(p.id); m.set(n,e); });
+  });
+  return [...m.values()].sort((a,b)=>a.nome.localeCompare(b.nome));
+}
+function pageAnagrafica(){
+  const ps = parti();
+  return `${head("Clienti e controparti", "Ogni persona o società una volta sola, con le pratiche in cui compare e il suo ruolo.")}
+  <section class="section"><h2>Controllo del conflitto di interessi</h2>
+    <div class="callout">Prima di accettare un incarico, scrivi il nome della nuova controparte. Se è già un cliente dello studio, compare un avviso.</div>
+    <div class="toolbar"><input type="text" id="conflitto" placeholder="Per esempio: Laura Ferri" aria-label="Nome della nuova controparte" style="flex:1 1 260px"></div>
+    <div id="esito-conflitto"></div>
+  </section>
+  <div class="tw"><table>
+    <thead><tr><th>Nome</th><th>Ruolo</th><th>Pratiche</th></tr></thead>
+    <tbody>${ps.map(e=>`<tr><td>${esc(e.nome)}</td><td>${[...e.ruoli].map(r=>`<span class="pill ${r==="Assistito"?"accent":"neutral"}">${r}</span>`).join(" ")}</td><td class="mono">${e.pratiche.join(", ")}</td></tr>`).join("")}</tbody>
+  </table></div>`;
+}
+function checkConflitto(v){
+  const out = $("#esito-conflitto"); if(!out) return;
+  const q = v.trim().toLowerCase();
+  if (q.length < 3){ out.innerHTML=""; return; }
+  const hit = parti().filter(e=>e.nome.toLowerCase().includes(q));
+  const clienti = hit.filter(e=>e.ruoli.has("Assistito"));
+  if (clienti.length) out.innerHTML = `<div class="callout warnbox"><b>Possibile conflitto.</b> ${clienti.map(e=>`${esc(e.nome)} è cliente dello studio nelle pratiche ${e.pratiche.join(", ")}`).join("; ")}. Verifica prima di accettare l'incarico.</div>`;
+  else if (hit.length) out.innerHTML = `<div class="callout"><b>Nessun conflitto con i clienti.</b> ${hit.map(e=>esc(e.nome)).join(", ")} compare già come controparte.</div>`;
+  else out.innerHTML = `<div class="callout"><b>Nessun conflitto.</b> Il nome non compare tra le parti dello studio.</div>`;
+}
+
+/* INCASSI */
+function pageIncassi(){
+  const tot = PRATICHE.reduce((s,p)=>s+p.compenso,0), pag = PRATICHE.reduce((s,p)=>s+p.pagato,0);
+  const rows = [...PRATICHE].sort((a,b)=>residuo(b)-residuo(a));
+  return `${head("Compensi e incassi", "Quanto è stato concordato, quanto è stato pagato e quanto manca, pratica per pratica.")}
+  <div class="kpis">
+    <div class="kpi"><span class="k">Compensi concordati</span><span class="v">${eur(tot)}</span><span class="s">${PRATICHE.length} pratiche</span></div>
+    <div class="kpi"><span class="k">Incassato</span><span class="v">${eur(pag)}</span><span class="s">${Math.round(pag/tot*100)}% del concordato</span></div>
+    <div class="kpi"><span class="k">Da incassare</span><span class="v">${eur(tot-pag)}</span><span class="s">&nbsp;</span></div>
+    <div class="kpi"><span class="k">Da sollecitare</span><span class="v">${eur(PRATICHE.filter(p=>statoIncasso(p).t==="Da sollecitare").reduce((s,p)=>s+residuo(p),0))}</span><span class="s">nessun pagamento da oltre 60 giorni</span></div>
+  </div>
+  <div class="tw"><table>
+    <thead><tr><th>Pratica</th><th>Cliente</th><th class="num">Concordato</th><th class="num">Pagato</th><th class="num">Da incassare</th><th>Incassato</th><th>Ultimo pagamento</th><th>Stato</th></tr></thead>
+    <tbody>${rows.map(p=>{const s=statoIncasso(p);return `<tr class="click" tabindex="0" data-open="${p.id}"><td class="mono">${p.id}</td><td>${esc(p.assistiti.join(", "))}</td><td class="num">${eur(p.compenso)}</td><td class="num">${eur(p.pagato)}</td><td class="num"><b>${eur(residuo(p))}</b></td><td><div class="bar"><i style="width:${quota(p)}%"></i></div></td><td class="mono">${p.ultimoPag?fmtD(p.ultimoPag):"—"}</td><td><span class="pill ${s.c}">${s.t}</span></td></tr>`}).join("")}</tbody>
+  </table></div>`;
+}
+
+/* PREVENTIVO (valori dimostrativi) */
+const SCAGLIONI = [
+  {k:"fino-5200", t:"Fino a 5.200 €", base:1100},
+  {k:"5201-26000", t:"Da 5.201 a 26.000 €", base:2600},
+  {k:"26001-52000", t:"Da 26.001 a 52.000 €", base:4200},
+  {k:"52001-260000", t:"Da 52.001 a 260.000 €", base:6800}
+];
+const GIUDIZI = [
+  {k:"gdp", t:"Giudice di Pace", f:0.5},
+  {k:"trib", t:"Tribunale, civile", f:1},
+  {k:"app", t:"Corte d'Appello", f:1.2},
+  {k:"trbt", t:"Corte di giustizia tributaria", f:0.9},
+  {k:"lav", t:"Tribunale, lavoro", f:0.95}
+];
+const FASI = [
+  {k:"studio", t:"Studio", w:0.25},
+  {k:"intro", t:"Introduttiva", w:0.2},
+  {k:"istr", t:"Istruttoria e trattazione", w:0.3},
+  {k:"dec", t:"Decisionale", w:0.25}
+];
+function defaultPrev(){ return {giudizio:"trib", scaglione:"26001-52000", fasi:{studio:true,intro:true,istr:true,dec:true}, compl:0, cliente:"Laura Ferri", controparte:"Edilnord Srl", oggetto:"Risarcimento danni per vizi dell'immobile"}; }
+function calcPrev(v){
+  const g = GIUDIZI.find(x=>x.k===v.giudizio), s = SCAGLIONI.find(x=>x.k===v.scaglione);
+  const base = FASI.reduce((sum,f)=> sum + (v.fasi[f.k] ? s.base*f.w*g.f : 0), 0);
+  const compenso = Math.round(base*(1+v.compl/100));
+  const spese = compenso*0.15, cpa = (compenso+spese)*0.04, iva = (compenso+spese+cpa)*0.22;
+  return {base, compenso, spese, cpa, iva, totale: compenso+spese+cpa+iva};
+}
+function pagePreventivo(){
+  const v = state.prev || (state.prev = defaultPrev());
+  return `${head("Preventivo", "Il preventivo scritto è obbligatorio dal 2017. Qui parte dai parametri forensi e si adatta alla complessità del caso.")}
+  <div class="callout warnbox"><b>Valori dimostrativi.</b> Gli importi per fase non sono quelli del DM 147/2022: nel prodotto vero si caricano le tabelle ufficiali. Spese generali al 15%, CPA al 4% e IVA al 22% sono le maggiorazioni abituali.</div>
+  <div class="calc">
+    <form class="form" id="prev-form" onsubmit="return false">
+      <div class="field"><label for="pv-cliente">Cliente</label><input type="text" id="pv-cliente" value="${esc(v.cliente)}"></div>
+      <div class="field"><label for="pv-contro">Controparte</label><input type="text" id="pv-contro" value="${esc(v.controparte)}"></div>
+      <div class="field"><label for="pv-oggetto">Oggetto</label><input type="text" id="pv-oggetto" value="${esc(v.oggetto)}"></div>
+      <div class="field"><label for="pv-giudizio">Giudizio</label><select id="pv-giudizio">${GIUDIZI.map(g=>`<option value="${g.k}"${g.k===v.giudizio?" selected":""}>${g.t}</option>`).join("")}</select></div>
+      <div class="field"><label for="pv-scaglione">Valore della causa</label><select id="pv-scaglione">${SCAGLIONI.map(s=>`<option value="${s.k}"${s.k===v.scaglione?" selected":""}>${s.t}</option>`).join("")}</select></div>
+      <div class="field"><span class="lbl">Fasi comprese</span><div class="checks">${FASI.map(f=>`<label><input type="checkbox" id="pv-f-${f.k}" data-fase="${f.k}"${v.fasi[f.k]?" checked":""}> ${f.t}</label>`).join("")}</div></div>
+      <div class="field"><label for="pv-compl">Complessità del caso: <b id="pv-compl-lbl">${v.compl>0?"+":""}${v.compl}%</b></label><input type="range" id="pv-compl" min="-50" max="50" step="5" value="${v.compl}"><span class="muted" style="font-size:.8rem">Da −50% (caso semplice) a +50% (caso complesso), i limiti in ambito civile secondo il DM 147/2022</span></div>
+    </form>
+    <div class="summary" id="prev-out"></div>
+  </div>`;
+}
+function renderPrevOut(){
+  const v = state.prev, r = calcPrev(v), out = $("#prev-out"); if(!out) return;
+  out.innerHTML = `<span class="muted" style="font-size:.8rem">Compenso professionale</span>
+    <span class="big">${eur(r.compenso)}</span>
+    <div class="line"><span class="muted">Base dalle fasi</span><span class="num">${eur(r.base)}</span></div>
+    <div class="line"><span class="muted">Complessità</span><span class="num">${v.compl>0?"+":""}${v.compl}%</span></div>
+    <div class="line"><span>Spese generali 15%</span><span class="num">${eur2(r.spese)}</span></div>
+    <div class="line"><span>CPA 4%</span><span class="num">${eur2(r.cpa)}</span></div>
+    <div class="line"><span>IVA 22%</span><span class="num">${eur2(r.iva)}</span></div>
+    <div class="line tot"><span>Totale per il cliente</span><span class="num">${eur2(r.totale)}</span></div>
+    <button id="prev-to-mandato">Crea il mandato da questo preventivo</button>`;
+}
+
+/* MANDATO */
+function datiMandato(){
+  if (state.mandatoDa && state.mandatoDa.tipo==="pratica"){
+    const p = pr(state.mandatoDa.id);
+    return {cliente:p.assistiti.join(" e "), controparte:p.controparti.join(", "), autorita:p.autorita, oggetto:p.oggetto, avvocato:p.resp, compenso:p.compenso, data:p.mandato, origine:`pratica ${p.id}`};
+  }
+  const v = state.prev || defaultPrev(); const r = calcPrev(v);
+  return {cliente:v.cliente, controparte:v.controparte, autorita:GIUDIZI.find(g=>g.k===v.giudizio).t, oggetto:v.oggetto, avvocato:"Avv. Conti", compenso:r.compenso, data:"2026-10-22", origine:"preventivo"};
+}
+function testoMandato(d){
+  return [
+    "CONFERIMENTO DI INCARICO PROFESSIONALE",
+    `Il/La sottoscritto/a ${d.cliente}, di seguito "Cliente", conferisce all'${d.avvocato} dello Studio Legale Demo l'incarico di assisterlo/a e rappresentarlo/a nella controversia con ${d.controparte}, davanti a ${d.autorita}, relativa a: ${d.oggetto}.`,
+    `Compenso. Il compenso è pattuito in ${eur(d.compenso)}, oltre al rimborso forfettario delle spese generali (15%), CPA (4%) e IVA (22%), come da preventivo del ${fmtLong(d.data)}.`,
+    "Il Cliente dichiara di aver ricevuto informazioni sul grado di complessità dell'incarico e sugli oneri ipotizzabili dal conferimento fino alla conclusione."
+  ];
+}
+function pageMandato(){
+  const d = datiMandato();
+  const opts = [`<option value="prev"${!state.mandatoDa||state.mandatoDa.tipo!=="pratica"?" selected":""}>Dal preventivo in corso</option>`, ...PRATICHE.map(p=>`<option value="${p.id}"${state.mandatoDa&&state.mandatoDa.id===p.id?" selected":""}>${p.id} · ${esc(p.assistiti.join(", "))}</option>`)];
+  const t = testoMandato(d);
+  return `${head("Mandato", "Il mandato si compila da solo con i dati già inseriti nel preventivo o nella pratica.")}
+  <div class="callout warnbox"><b>Testo di esempio, non un modello legale.</b> Il modello vero lo fornisce e lo approva lo studio. Lo strumento si limita a compilarlo.</div>
+  <div class="toolbar"><label for="m-da" class="muted" style="font-size:.85rem">Compila da</label><select id="m-da">${opts.join("")}</select><button class="ghost" id="m-copia">Copia il testo</button><span id="m-copiato" class="muted" style="font-size:.85rem"></span></div>
+  <article class="paper" id="m-doc">
+    <h3>${t[0]}</h3>${t.slice(1).map(x=>`<p>${esc(x)}</p>`).join("")}
+    <div class="sig"><span>Luogo e data</span><span>Firma del Cliente</span><span>Firma dell'Avvocato</span></div>
+  </article>`;
+}
+
+/* MARGINE */
+function pageMargine(){
+  const c = state.costoOrario;
+  const rows = PRATICHE.map(p=>{ const costo=p.ore*c, marg=p.compenso-costo; return {p, costo, marg, roi: costo ? marg/costo : null, perOra: p.ore ? p.compenso/p.ore : null}; }).sort((a,b)=>(b.roi ?? -Infinity)-(a.roi ?? -Infinity));
+  const misurate = rows.filter(r=>r.roi != null);
+  const mat = {}; rows.forEach(r=>{ const m=mat[r.p.materia]||(mat[r.p.materia]={comp:0,ore:0}); m.comp+=r.p.compenso; m.ore+=r.p.ore; });
+  const oreTot = rows.reduce((s,r)=>s+r.p.ore,0);
+  const tot = rows.reduce((s,r)=>({comp:s.comp+r.p.compenso, marg:s.marg+r.marg}),{comp:0,marg:0});
+  const roiTot = tot.marg/(oreTot*c);
+  const best = misurate[0], worst = misurate[misurate.length-1];
+  return `${head("Margine e ROI per pratica", "Guadagno e ore lavorate di ogni pratica: quali rendono di più per ogni ora investita e quali di meno.")}
+  <div class="toolbar"><label for="costo-orario" class="muted" style="font-size:.85rem">Costo di un'ora di lavoro dello studio</label><input type="number" id="costo-orario" min="10" max="300" step="5" value="${c}" style="width:110px"><span class="muted" style="font-size:.85rem">€ (ipotesi: stipendi, affitto e spese divisi per le ore lavorate)</span></div>
+  <div class="callout"><b>Come si legge il ROI.</b> (compenso − costo delle ore) ÷ costo delle ore. Un ROI del +100% vuol dire che ogni euro di tempo investito nella pratica ne ha resi due. Sotto lo zero, la pratica costa più di quanto incassa.</div>
+  <div class="kpis">
+    <div class="kpi"><span class="k">ROI dello studio</span><span class="v">${pctFmt(roiTot)}</span><span class="s">margine ${eur(tot.marg)} su ${oreTot} ore</span></div>
+    <div class="kpi"><span class="k">ROI più alto</span><span class="v">${pctFmt(best.roi)}</span><span class="s"><span class="mono">${best.p.id}</span> · ${esc(best.p.materia)}, ${eur(best.perOra)} per ora</span></div>
+    <div class="kpi"><span class="k">ROI più basso</span><span class="v" style="color:var(${worst.roi<0?"--crit":"--ink"})">${pctFmt(worst.roi)}</span><span class="s"><span class="mono">${worst.p.id}</span> · ${esc(worst.p.materia)}, ${eur(worst.perOra)} per ora</span></div>
+    <div class="kpi"><span class="k">Compenso medio per ora</span><span class="v">${eur(tot.comp/oreTot)}</span><span class="s">contro un costo di ${eur(c)}</span></div>
+  </div>
+  <section class="section"><div class="section-head"><h2>Classifica delle pratiche per ROI</h2><span class="muted" style="font-size:.85rem">Dalla più redditizia alla meno redditizia</span></div>
+  <div class="tw"><table>
+    <thead><tr><th>Pratica</th><th>Materia</th><th class="num">Compenso</th><th class="num">Ore</th><th class="num">Costo delle ore</th><th class="num">Guadagno</th><th class="num">€ per ora</th><th class="num">ROI</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr class="click" tabindex="0" data-open="${r.p.id}"><td class="mono">${r.p.id}</td><td>${r.p.materia}</td><td class="num">${eur(r.p.compenso)}</td><td class="num">${r.p.ore}</td><td class="num">${eur(r.costo)}</td><td class="num"><b>${eur(r.marg)}</b></td><td class="num">${eur(r.perOra)}</td><td class="num"><span class="pill ${roiClass(r.roi)}">${pctFmt(r.roi)}</span></td></tr>`).join("")}</tbody>
+  </table></div></section>
+  <section class="section"><h2>Per materia</h2>
+    <div class="tw"><table><thead><tr><th>Materia</th><th class="num">Compensi</th><th class="num">Ore</th><th class="num">€ per ora</th><th class="num">ROI</th></tr></thead>
+    <tbody>${Object.entries(mat).map(([k,m])=>{const roi=m.ore?(m.comp-m.ore*c)/(m.ore*c):null;return [k,m,roi];}).sort((a,b)=>(b[2] ?? -Infinity)-(a[2] ?? -Infinity)).map(([k,m,roi])=>`<tr><td>${esc(k)}</td><td class="num">${eur(m.comp)}</td><td class="num">${m.ore}</td><td class="num">${m.ore?eur(m.comp/m.ore):"—"}</td><td class="num"><span class="pill ${roiClass(roi)}">${pctFmt(roi)}</span></td></tr>`).join("")}</tbody></table></div>
+  </section>`;
+}
+
+/* MAPPA DELLE FUNZIONI */
+const MAPPA = [
+  {f:"Scheda della pratica", liv:"Essenziale", imp:5, ris:"Medio", come:"Minuti risparmiati a ogni ricerca, ogni giorno", prob:"Numero di pratica, fascicolo, autorità e responsabile sono sparsi tra cartelle SharePoint, email e memoria", pag:"pratiche"},
+  {f:"Parti: assistiti e controparti multipli", liv:"Essenziale", imp:5, ris:"Basso", come:"Meno errori nel ricostruire chi è chi", prob:"Una persona compare in più pratiche e con ruoli diversi, e non lo si vede", pag:"anagrafica"},
+  {f:"Udienze con oggetto e storia", liv:"Essenziale", imp:5, ris:"Alto", come:"Un'udienza mancata può costare la causa e la responsabilità professionale", prob:"L'udienza precedente si ricostruisce a mano; l'agenda è separata dalla pratica", pag:"agenda"},
+  {f:"Scadenze con avvisi", liv:"Essenziale", imp:5, ris:"Alto", come:"Evita decadenze e richieste di risarcimento", prob:"Termini tenuti a memoria o in fogli separati", pag:"agenda"},
+  {f:"Compensi e incassi", liv:"Essenziale", imp:5, ris:"Alto", come:"Crediti incassati prima, meno compensi dimenticati", prob:"Non si sa chi ha pagato e chi deve ancora pagare", pag:"incassi"},
+  {f:"Vista di recap", liv:"Essenziale", imp:4, ris:"Medio", come:"Ogni mattina, in una frase, cosa scade e cosa va incassato", prob:"Le priorità del giorno vanno cercate tra più file", pag:"recap"},
+  {f:"Responsabile e carico per avvocato", liv:"Essenziale", imp:4, ris:"Medio", come:"Nessuna pratica senza un nome", prob:"Non è chiaro chi segue cosa", pag:"pratiche"},
+  {f:"Controllo del conflitto di interessi", liv:"Essenziale", imp:4, ris:"Basso in euro, alto in rischio", come:"Evita un illecito deontologico", prob:"Accettare un incarico contro un cliente già assistito dallo studio", pag:"anagrafica"},
+  {f:"Accesso condiviso, permessi e backup", liv:"Essenziale", imp:4, ris:"Medio", come:"Una sola versione dei dati per tutti", prob:"File duplicati e versioni diverse", pag:null},
+  {f:"Preventivo sui parametri, con la complessità", liv:"Aggiuntiva", imp:4, ris:"Medio", come:"Tempo per ogni preventivo e compensi non sottostimati", prob:"Preventivi fatti a mano; è un obbligo di legge dal 2017", pag:"preventivo"},
+  {f:"Generatore del mandato", liv:"Aggiuntiva", imp:3, ris:"Medio", come:"Tempo ed errori di copia", prob:"Gli stessi dati riscritti in ogni documento", pag:"mandato"},
+  {f:"Ore lavorate per pratica", liv:"Aggiuntiva", imp:3, ris:"Medio", come:"Il lavoro fatto diventa visibile", prob:"Senza ore non si sa quanto costa una pratica", pag:"margine"},
+  {f:"Margine e ROI per pratica e per materia", liv:"Aggiuntiva", imp:3, ris:"Alto, nel tempo", come:"Prezzi e scelta degli incarichi basati su guadagno e ore reali", prob:"Non si sa quali pratiche hanno il ROI più alto e quali il più basso", pag:"margine"},
+  {f:"Solleciti di pagamento", liv:"Aggiuntiva", imp:3, ris:"Alto", come:"Crediti che non invecchiano", prob:"I solleciti partono tardi o non partono", pag:"incassi"},
+  {f:"Termini suggeriti, con conferma dell'avvocato", liv:"Aggiuntiva", imp:3, ris:"Medio", come:"Meno calcoli a mano", prob:"Il calcolo dei termini è manuale; esistono calcolatori gratuiti", pag:null},
+  {f:"Deposito telematico (PCT) e PEC", liv:"Fuori, per ora", imp:5, ris:"—", come:"Lo studio li ha già, anche gratis", prob:"Complessi e legati ai sistemi del Ministero", pag:null},
+  {f:"Fattura elettronica", liv:"Fuori, per ora", imp:4, ris:"—", come:"Da collegare dopo allo strumento che lo studio usa già", prob:"Invio allo SDI", pag:null},
+  {f:"Portale clienti, app, analisi avanzate", liv:"Fuori, per ora", imp:2, ris:"—", come:"Superflui sotto le dieci persone", prob:"—", pag:null}
+];
+function dots(n){ return `<span class="dots" aria-label="${n} su 5">${"●".repeat(n)}<span class="off">${"●".repeat(5-n)}</span></span>`; }
+function pageMappa(){
+  const pills = {"Essenziale":"accent","Aggiuntiva":"neutral","Fuori, per ora":"warn"};
+  const risC = r => r.startsWith("Alto")?"ok":r.startsWith("Medio")?"accent":r==="—"?"neutral":"neutral";
+  return `${head("Mappa delle funzioni", "Ogni funzione con la sua importanza, quanto fa risparmiare allo studio e il problema che risolve.")}
+  <div class="callout warnbox"><b>Non validato.</b> Importanza e risparmio sono una proposta di Claude del 22/10/2026, basata sulla ricerca sui gestionali esistenti e sulla richiesta del contatto. Il risparmio è qualitativo: va misurato con lo studio.</div>
+  <div class="legend"><span><b>Importanza</b>: da 1 a 5 punti, quanto lo studio ne ha bisogno ogni giorno</span><span><b>Risparmio</b>: alto, medio o basso, con il motivo</span></div>
+  <div class="tw"><table>
+    <thead><tr><th>Funzione</th><th>Livello</th><th>Importanza</th><th>Risparmio</th><th>Problema che risolve</th><th>Nel prototipo</th></tr></thead>
+    <tbody>${MAPPA.map(m=>`<tr><td><b>${esc(m.f)}</b></td><td><span class="pill ${pills[m.liv]}">${m.liv}</span></td><td>${dots(m.imp)}</td><td><span class="pill ${risC(m.ris)}">${esc(m.ris)}</span><br><span class="muted" style="font-size:.82rem">${esc(m.come)}</span></td><td>${esc(m.prob)}</td><td>${m.pag?`<a href="#${m.pag}">Apri</a>`:"<span class='muted'>—</span>"}</td></tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+/* NUOVA PRATICA */
+const AUTORITA = ["Giudice di Pace","Tribunale, sezione civile","Tribunale, sezione penale","Tribunale, sezione lavoro","Corte d'Appello","Corte di giustizia tributaria di primo grado","Corte di giustizia tributaria di secondo grado","Corte di Cassazione"];
+const MATERIE = ["Civile","Penale","Lavoro","Tributario","Amministrativo","Famiglia"];
+function nextId(){
+  const n = PRATICHE.filter(p=>p.id.startsWith("P-2026-")).map(p=>Number(p.id.slice(7))||0).reduce((a,b)=>Math.max(a,b),0) + 1;
+  return "P-2026-" + String(n).padStart(3,"0");
+}
+function pageNuova(){
+  const resps = [...new Set(PRATICHE.map(p=>p.resp))];
+  return `<button class="back" data-back>‹ Tutte le pratiche</button>
+  ${head("Nuova pratica", "I campi con l'asterisco sono obbligatori. Il resto si può completare dopo, dalla scheda della pratica.")}
+  <form class="form" id="nuova-form" novalidate style="max-width:780px">
+    <div class="two">
+      <div class="field"><label for="n-id">Numero di pratica</label><input type="text" id="n-id" value="${nextId()}"></div>
+      <div class="field"><label for="n-fasc">Numero del fascicolo</label><input type="text" id="n-fasc" placeholder="Per esempio: RG 1234/2026"></div>
+    </div>
+    <div class="field"><label for="n-oggetto">Oggetto *</label><input type="text" id="n-oggetto" placeholder="Per esempio: Recupero crediti verso un fornitore"></div>
+    <div class="two">
+      <div class="field"><label for="n-assistiti">Assistiti *</label><input type="text" id="n-assistiti" placeholder="Più nomi separati da una virgola"></div>
+      <div class="field"><label for="n-contro">Controparti</label><input type="text" id="n-contro" placeholder="Più nomi separati da una virgola"></div>
+    </div>
+    <div id="n-conflitto"></div>
+    <div class="two">
+      <div class="field"><label for="n-aut">Autorità competente *</label><select id="n-aut"><option value="">Scegli</option>${AUTORITA.map(a=>`<option>${esc(a)}</option>`).join("")}</select></div>
+      <div class="field"><label for="n-sede">Sede</label><input type="text" id="n-sede" placeholder="Per esempio: Milano"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label for="n-materia">Materia</label><select id="n-materia">${MATERIE.map(m=>`<option>${m}</option>`).join("")}</select></div>
+      <div class="field"><label for="n-resp">Responsabile *</label><select id="n-resp"><option value="">Scegli</option>${resps.map(r=>`<option>${esc(r)}</option>`).join("")}</select></div>
+    </div>
+    <div class="two">
+      <div class="field"><label for="n-valore">Valore della causa (€)</label><input type="number" id="n-valore" min="0" step="100" placeholder="Vuoto se indeterminabile"></div>
+      <div class="field"><label for="n-compenso">Compenso concordato (€)</label><input type="number" id="n-compenso" min="0" step="50" placeholder="Dal preventivo"></div>
+    </div>
+    <div class="field" style="max-width:240px"><label for="n-mandato">Data del mandato</label><input type="date" id="n-mandato" value="2026-10-22"></div>
+    <div class="section" style="gap:8px"><h2>Prima udienza <span class="muted" style="font-family:var(--font-body);font-size:.85rem;font-weight:400">facoltativa</span></h2>
+      <div class="two">
+        <div class="field"><label for="n-ud-data">Data</label><input type="date" id="n-ud-data"></div>
+        <div class="field"><label for="n-ud-ora">Ora</label><input type="time" id="n-ud-ora" value="09:30"></div>
+      </div>
+      <div class="field"><label for="n-ud-ogg">Per cosa è fissata</label><input type="text" id="n-ud-ogg" placeholder="Per esempio: Prima udienza di comparizione"></div>
+    </div>
+    <div id="n-errore"></div>
+    <div class="toolbar"><button type="submit">Salva la pratica</button><button type="button" class="ghost" data-back>Annulla</button></div>
+    <p class="muted" style="font-size:.8rem;margin:0">Nel prototipo le pratiche che aggiungi restano solo in questo browser.</p>
+  </form>`;
+}
+const splitNomi = s => s.split(",").map(x=>x.trim()).filter(Boolean);
+function checkConflittoNuova(){
+  const out = $("#n-conflitto"); if (!out) return;
+  const ps = parti();
+  const avvisi = [];
+  splitNomi($("#n-contro").value).forEach(n=>{ const e = ps.find(x=>x.nome.toLowerCase()===n.toLowerCase() && x.ruoli.has("Assistito")); if (e) avvisi.push(`${esc(e.nome)} è cliente dello studio (${e.pratiche.join(", ")}) e qui sarebbe controparte.`); });
+  splitNomi($("#n-assistiti").value).forEach(n=>{ const e = ps.find(x=>x.nome.toLowerCase()===n.toLowerCase() && x.ruoli.has("Controparte")); if (e) avvisi.push(`${esc(e.nome)} è controparte in ${e.pratiche.join(", ")} e qui sarebbe assistito.`); });
+  out.innerHTML = avvisi.length ? `<div class="callout warnbox"><b>Possibile conflitto di interessi.</b> ${avvisi.join(" ")}</div>` : "";
+}
+function salvaNuova(){
+  const v = id => $("#"+id).value.trim();
+  const errs = [];
+  const pid = v("n-id") || nextId();
+  if (PRATICHE.some(p=>p.id===pid)) errs.push(`Il numero ${pid} esiste già: scegline un altro.`);
+  if (!v("n-oggetto")) errs.push("Manca l'oggetto della pratica.");
+  if (!splitNomi(v("n-assistiti")).length) errs.push("Indica almeno un assistito.");
+  if (!v("n-aut")) errs.push("Scegli l'autorità competente.");
+  if (!v("n-resp")) errs.push("Scegli il responsabile.");
+  if (errs.length){ $("#n-errore").innerHTML = `<div class="callout warnbox">${errs.map(esc).join("<br>")}</div>`; return; }
+  const aut = v("n-aut"), sede = v("n-sede");
+  const [a1, a2] = aut.split(", ");
+  const autorita = sede ? (a2 ? `${a1} di ${sede}, ${a2}` : `${a1} di ${sede}`) : aut;
+  const p = {id:pid, fascicolo:v("n-fasc") || "Da assegnare", autorita, materia:v("n-materia"), oggetto:v("n-oggetto"), assistiti:splitNomi(v("n-assistiti")), controparti:splitNomi(v("n-contro")), resp:v("n-resp"), stato:"Aperta", valore:v("n-valore") ? Number(v("n-valore")) : null, compenso:Number(v("n-compenso")) || 0, pagato:0, ultimoPag:null, ore:0, mandato:v("n-mandato") || "2026-10-22"};
+  PRATICHE.push(p); AGGIUNTE.pratiche.push(p);
+  if (v("n-ud-data")){ const u = {p:pid, data:v("n-ud-data"), ora:v("n-ud-ora") || "09:00", oggetto:v("n-ud-ogg") || "Prima udienza", esito:""}; UDIENZE.push(u); AGGIUNTE.udienze.push(u); }
+  salvaAggiunte();
+  state.flash = `Pratica ${pid} salvata.`;
+  go("pratiche", {pratica:pid});
+}
+
+/* rendering */
+const PAGES = {nuova:pageNuova, recap:pageRecap, pratiche:pagePratiche, agenda:pageAgenda, anagrafica:pageAnagrafica, incassi:pageIncassi, preventivo:pagePreventivo, mandato:pageMandato, margine:pageMargine, mappa:pageMappa};
+function render(){
+  main.innerHTML = PAGES[state.page]();
+  if (state.flash){ main.insertAdjacentHTML("afterbegin", `<div class="callout" role="status" style="background:var(--ok-soft);border-color:var(--ok-soft);color:var(--ok)"><b>${esc(state.flash)}</b></div>`); state.flash = null; }
+  const navPage = state.page === "nuova" ? "pratiche" : state.page;
+  document.querySelectorAll(".nav a").forEach(a=>{ if (a.dataset.page===navPage) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
+  $("#c-pratiche").textContent = PRATICHE.length;
+  if (state.page==="preventivo") renderPrevOut();
+}
+function go(page, opts={}){
+  state.page = PAGES[page] ? page : "recap";
+  state.azione = null;
+  if ("pratica" in opts) state.pratica = opts.pratica; else if (page!=="pratiche") state.pratica = null;
+  if (location.hash.slice(1)!==state.page) history.replaceState(null,"","#"+state.page);
+  render(); window.scrollTo(0,0);
+}
+window.addEventListener("hashchange", ()=>{ const p = location.hash.slice(1); if (p!==state.page) go(p, {pratica:null}); });
+document.querySelectorAll(".nav a").forEach(a=>a.addEventListener("click", e=>{ e.preventDefault(); go(a.dataset.page, {pratica:null}); }));
+
+main.addEventListener("click", e=>{
+  const open = e.target.closest("[data-open]");
+  if (open){ go("pratiche", {pratica:open.dataset.open}); return; }
+  if (e.target.closest("[data-back]")){ go("pratiche", {pratica:null}); return; }
+  if (e.target.id==="btn-nuova"){ go("nuova"); return; }
+  const az = e.target.closest("[data-azione]");
+  if (az){ state.azione = state.azione===az.dataset.azione ? null : az.dataset.azione; render(); const f = $("#azione-form input"); if (f) f.focus(); return; }
+  if (e.target.closest("[data-azione-chiudi]")){ state.azione = null; render(); return; }
+  const m = e.target.closest("[data-mandato]");
+  if (m){ state.mandatoDa = {tipo:"pratica", id:m.dataset.mandato}; go("mandato"); return; }
+  if (e.target.id==="prev-to-mandato"){ state.mandatoDa = {tipo:"prev"}; go("mandato"); return; }
+  if (e.target.id==="m-copia"){
+    const testo = testoMandato(datiMandato()).join("\n\n");
+    const msg = $("#m-copiato");
+    const fallback = ()=>{ const r=document.createRange(); r.selectNodeContents($("#m-doc")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); msg.textContent="Testo selezionato: copialo con Ctrl+C."; };
+    try { navigator.clipboard.writeText(testo).then(()=>{ msg.textContent="Testo copiato."; }, fallback); } catch(err){ fallback(); }
+  }
+});
+main.addEventListener("submit", e=>{ e.preventDefault(); if (e.target.id==="nuova-form") salvaNuova(); if (e.target.id==="azione-form") salvaAzione(); });
+main.addEventListener("keydown", e=>{
+  if (e.key==="Enter"){ const open = e.target.closest("[data-open]"); if (open){ go("pratiche",{pratica:open.dataset.open}); } }
+});
+main.addEventListener("input", e=>{
+  const t = e.target;
+  if (t.id==="cerca"){ state.cerca = t.value; const pos=t.selectionStart; render(); const n=$("#cerca"); n.focus(); n.setSelectionRange(pos,pos); }
+  if (t.id==="conflitto") checkConflitto(t.value);
+  if (t.id==="n-contro" || t.id==="n-assistiti") checkConflittoNuova();
+  if (t.id==="costo-orario"){ const v=Number(t.value); if (v>0){ state.costoOrario=v; render(); const n=$("#costo-orario"); n.focus(); } }
+  if (t.id && t.id.startsWith("pv-")){
+    const v = state.prev;
+    if (t.id==="pv-cliente") v.cliente=t.value;
+    if (t.id==="pv-contro") v.controparte=t.value;
+    if (t.id==="pv-oggetto") v.oggetto=t.value;
+    if (t.id==="pv-compl"){ v.compl=Number(t.value); $("#pv-compl-lbl").textContent=(v.compl>0?"+":"")+v.compl+"%"; }
+    if (t.dataset.fase) v.fasi[t.dataset.fase]=t.checked;
+    renderPrevOut();
+  }
+});
+main.addEventListener("change", e=>{
+  const t = e.target;
+  if (t.id==="filtro-resp"){ state.filtroResp=t.value; render(); }
+  if (t.id==="pv-giudizio"){ state.prev.giudizio=t.value; renderPrevOut(); }
+  if (t.id==="pv-scaglione"){ state.prev.scaglione=t.value; renderPrevOut(); }
+  if (t.dataset && t.dataset.fase){ state.prev.fasi[t.dataset.fase]=t.checked; renderPrevOut(); }
+  if (t.id==="m-da"){ state.mandatoDa = t.value==="prev" ? {tipo:"prev"} : {tipo:"pratica", id:t.value}; render(); }
+});
+
+go((location.hash||"#recap").slice(1) || "recap", {pratica:null});
+})();
+</script>
+</body>
+</html>
